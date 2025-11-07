@@ -21,7 +21,7 @@
                     </div>
                     <div class="flex justify-between mt-6">
                     <h2 class="text-xl">Your Managed Meals</h2>
-                    <a href="{{route('meals.create')}}" class="text-white hover:bg-blue-700 float-end bg-blue-500 rounded-lg px-4 py-2">Create New Meal</a>
+                    <a href="{{route('meal.create')}}" class="text-white hover:bg-blue-700 float-end bg-blue-500 rounded-lg px-4 py-2">Create New Meal</a>
                     </div>
                     <div class="inline-flex flex-wrap gap-4 mt-4">
                         @foreach($meals as $meal)

@@ -17,9 +17,30 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::factory()->createMany([[
+            'name' => 'Fahim Faisal',
+            'email' => 'fahimfaisal@gmail.com',
+        ],[
+            'name' => 'Sayid Ahmed',
+            'email' => 'sayidahmed@gmail.com',
+        ],[
+            'name' => 'Md. Safiqul Islam Sabid ',
+            'email' => 'sabid@gmail.com',
+        ],[
+            'name' => 'Sakib Ferdus',
+            'email' => 'sakib@gmail.com'
+        ],[
+            'name' => 'Rushud Sakib',
+            'email' => 'rushud@gmail.com'
+        ],[
+            'name' => 'Sezan Mahmud Tonmoy',
+            'email' => 'sezan@gmail.com'
+        ],[
+            'name' => 'Srobon Mia',
+            'email' => 'srobon@gmail.com'
+        ],[
+            'name' => 'Touhidur Rahman',
+            'email' => 'touhidur@gmail.com'
+        ]]);
     }
 }
