@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\MealCount;
 
 class Meal extends Controller
 {
@@ -33,8 +34,10 @@ class Meal extends Controller
     public function manage_meal($id)
     {
         $meal = \App\Models\Meal::findOrFail($id);
-        
-        return view('meal.meal-sheet', compact('meal'));
+        $mealdatas = DB::table('meal_counts')->where('meal_id',$id)->orderBy('sl_no')->get();
+        $memberCount = DB::table('meal_counts')->where('meal_id',$id)->count(); 
+        //dd($mealdatas);
+        return view('meal.meal-sheet', compact('meal','mealdatas','memberCount'));
     }
     public function meal_settings($id)
     {
@@ -44,7 +47,14 @@ class Meal extends Controller
     public function meal_members($id)
     {
         $meal = \App\Models\Meal::findOrFail($id);
-        $members = \App\Models\MealMember::where('meal_id', $id)->with('user')->orderBy('sl_no')->get();
+        // $members = \App\Models\MealCount::where('meal_id',$id)->get();
+        // dd($members);
+       $members = DB::table('meal_counts')
+            ->where('meal_counts.meal_id', $id)
+            ->leftJoin('users', 'users.id', '=', 'meal_counts.user_id')
+            ->orderBy('meal_counts.sl_no')
+            ->select('meal_counts.*', 'users.*')
+            ->get();
         return view('meal.members', compact('meal', 'members'));
     }
     public function update_meal(Request $request, $id)
@@ -70,7 +80,7 @@ class Meal extends Controller
     }
     public function is_duplicate($id,$short_name)
     {
-        $exists = \App\Models\MealMember::where('meal_id', $id)
+        $exists = \App\Models\MealCount::where('meal_id', $id)
             ->where('short_name', $short_name)
             ->exists();
 
@@ -81,23 +91,32 @@ class Meal extends Controller
         $validatedData = $request->validate([
             'short_name' => 'required|string|max:50',
         ]);
-
-        $mealMember = new \App\Models\MealMember();
-        $mealMember->meal_id = $mealId;
-        $mealMember->user_id = $request->user_id;
-        $mealMember->short_name = $validatedData['short_name'];
-        $mealMember->save();
-
+        //create member
+            // $mealMember = new \App\Models\MealCount();
+            // $mealMember->meal_id = $mealId;
+            // $mealMember->user_id = $request->user_id;
+            // $mealMember->short_name = $validatedData['short_name'];
+            // $mealMember->save();
+        //create meal count row for member
+        DB::table('meal_counts')->insert([
+            'meal_id'=>$mealId,
+            'user_id'=>$request->user_id,
+            'short_name'=>$validatedData['short_name']
+        ]);
         return redirect()->route('meal.members', ['id' => $mealId])->with('success', 'Member added successfully!');
     }
     public function search_users(Request $request, $mealId)
     {
         $query = $request->input('query');
+        $excluded = DB::table('meal_counts')
+            ->where('meal_id', $mealId)
+            ->pluck('user_id')
+            ->toArray();
 
         $users = \App\Models\User::where(function ($q) use ($query) {
         $q->where('name', 'LIKE', "%{$query}%")
           ->orWhere('email', 'LIKE', "%{$query}%");
-            })->whereNotIn('id', \App\Models\MealMember::where('meal_id', $mealId)->pluck('user_id'))
+            })->whereNotIn('id', $excluded)
             ->limit(10)
             ->get();
 
@@ -106,8 +125,8 @@ class Meal extends Controller
     }
     public function remove_member($mealId, $memberId)
     {
-        // Problem with ORM delete, so using query builder
-        DB::table('meal_members')
+        // Deleting meal count table
+        DB::table('meal_counts')
             ->where('meal_id', $mealId)
             ->where('user_id', $memberId)
             ->delete();
@@ -120,14 +139,14 @@ class Meal extends Controller
             'short_name' => 'required|string|max:50',
         ]);
 
-        $mealMember = DB::table('meal_members')
+        $mealMember = DB::table('meal_counts')
             ->where('meal_id', $mealId)
             ->where('user_id', $memberId)
             ->first();
 
         $mealMember->short_name = $validatedData['short_name'];
         // Problem with ORM update, so using query builder\
-        DB::table('meal_members')
+        DB::table('meal_counts')
             ->where('meal_id', $mealId)
             ->where('user_id', $memberId)
             ->update(['short_name' => $validatedData['short_name']]);
@@ -141,14 +160,23 @@ class Meal extends Controller
         $from_user_id = $request->input('from_user_id');
         $to_user_id = $request->input('to_user_id');
         // Swap the sl_no of the two members
-        DB::table('meal_members')
+        DB::table('meal_counts')
             ->where('meal_id', $mealId)
             ->where('user_id', $from_user_id)
             ->update(['sl_no' => $to_sl_no]);
-        DB::table('meal_members')
+        DB::table('meal_counts')
             ->where('meal_id', $mealId)
             ->where('user_id', $to_user_id)
             ->update(['sl_no' => $from_sl_no]);
         return response()->json(['success' => true]);
+    }
+    public function update_meal_sheet(Request $request, $mealId){
+        DB::update('UPDATE meal_counts SET d_'.$request->input('date').' = '.$request->input('mealNumber').' WHERE meal_id = '.$mealId.'AND user_id = '.$request->input('userId'));
+        // Use query builder for cleaner syntax
+        // DB::table('meal_counts')
+        //     ->where('meal_id', $mealId)
+        //     ->where('user_id', $userId)
+        //     ->update([$column => $mealNumber]);
+        return response()->json(['request'=> [$request->input('userId'),$request->input('date'),$request->input('mealNumber')]]);
     }
 }

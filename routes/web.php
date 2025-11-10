@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Meal;
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,5 +37,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/meal/{id}/users/search', [App\Http\Controllers\Meal::class, 'search_users'])->name('meal.search-users');
         Route::put('/meal/{id}/members/{memberId}', [App\Http\Controllers\Meal::class, 'update_member']);
         Route::put('/meal/{id}/members-order', [App\Http\Controllers\Meal::class, 'update_member_order']);
+        Route::put('/meal/{id}/update-meal-sheet',[Meal::class,'update_meal_sheet']);
     });
 });

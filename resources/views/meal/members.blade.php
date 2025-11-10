@@ -19,9 +19,10 @@
         <tbody>
             @foreach ($members as $member)
                 <tr class="@if(!$loop->odd) bg-gray-50 @else bg-white @endif">
-                    <td draggable="true" data-sl-no="{{ $member->sl_no }}" data-user-id="{{$member->user_id}}" class="py-2 px-4 border-b border-gray-300">{{ $loop->iteration }}</td>
-                    <td class="py-2 px-4 border-b border-gray-300">{{ $member->user->name }}</td>
-                    <td class="py-2 px-4 border-b border-gray-300">{{ $member->user->email }}</td>
+                    <td draggable="true" data-sl-no="{{ $member->sl_no }}" data-user-id="{{$member->user_id}}"
+                        title="Drag and drop to sort" class="py-2 px-4 border-b border-gray-300 cursor-pointer">{{ $loop->iteration }}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">{{ $member->name }}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">{{ $member->email }}</td>
                     <td class="py-2 px-4 border-b border-gray-300 cursor-pointer" ondblclick="editShortName(this)"
                         data-user-id="{{$member->user_id}}" title="Double click to edit">{{ $member->short_name }}</td>
                     <td class="py-2 px-4 border-b border-gray-300">
